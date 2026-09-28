@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>具身智能进入 C 端：技术没卡住，标准与伦理才是</title>
+<meta name="description" content="关于 Embodied AI 在 2024–2025 走向 C 端的一个观察：技术已到能演示的临界点，但安全、像人与责任三类标准都空白，资本与社会的博弈决定下一步节奏。">
+<meta name="author" content="李梦颜">
+<style>
+  /* ============ reset ============ */
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans GB','PingFang SC','Heiti SC','Microsoft YaHei','Source Han Sans SC',sans-serif;
+    font-size:16px;line-height:1.7;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid transparent;transition:border-color .2s}
+  a:hover{border-bottom-color:var(--accent)}
+  img{max-width:100%;display:block}
+
+  /* ============ tokens ============ */
+  :root{
+    --bg:#0B0F14;
+    --surface:#161B22;
+    --surface-2:#1E242C;
+    --border:#2A3441;
+    --border-soft:#1F2731;
+    --ink:#E6EDF3;
+    --ink-mute:#8B949E;
+    --ink-soft:#6E7681;
+    --accent:#58A6FF;
+    --accent-dim:#1F4E8A;
+    --gold:#F0B656;
+    --red:#F47B6B;
+    --green:#7BD389;
+    --max:880px;
+    --max-wide:1240px;
+  }
+
+  /* ============ nav ============ */
+  .nav{position:fixed;top:0;left:0;right:0;z-index:50;backdrop-filter:saturate(160%) blur(14px);
+    -webkit-backdrop-filter:saturate(160%) blur(14px);background:rgba(11,15,20,.72);
+    border-bottom:1px solid var(--border-soft);transition:transform .25s}
+  .nav-inner{max-width:var(--max-wide);margin:0 auto;padding:14px 28px;display:flex;justify-content:space-between;align-items:center}
+  .nav-logo{font-weight:600;color:var(--ink);font-size:14px;letter-spacing:.5px}
+  .nav-logo span{color:var(--accent)}
+  .nav-links{display:flex;gap:22px;font-size:13px;color:var(--ink-mute)}
+  .nav-links a{border-bottom:none}
+  .nav-links a:hover{color:var(--ink)}
+  @media (max-width:640px){.nav-links{display:none}}
+
+  /* ============ hero ============ */
+  .hero{min-height:88vh;display:flex;align-items:center;padding:120px 28px 80px;
+    background:radial-gradient(1100px 600px at 60% -10%,rgba(88,166,255,.10),transparent 60%),
+               radial-gradient(800px 500px at 90% 30%,rgba(240,182,86,.06),transparent 60%)}
+  .hero-inner{max-width:var(--max-wide);margin:0 auto;width:100%;display:grid;grid-template-columns:1.4fr .9fr;gap:60px;align-items:center}
+  @media (max-width:860px){.hero-inner{grid-template-columns:1fr;gap:40px}}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--accent);font-size:13px;letter-spacing:1.5px;
+    text-transform:uppercase;margin-bottom:24px}
+  .eyebrow::before{content:"";display:inline-block;width:24px;height:1px;background:var(--accent)}
+  .hero h1{font-size:clamp(34px,5.4vw,56px);font-weight:700;line-height:1.15;letter-spacing:-.02em;margin-bottom:24px}
+  .hero h1 em{font-style:normal;color:var(--gold);font-weight:600}
+  .hero p.lede{font-size:18px;line-height:1.65;color:var(--ink-mute);max-width:560px;margin-bottom:36px}
+  .hero-meta{display:flex;flex-wrap:wrap;gap:18px 28px;font-size:13px;color:var(--ink-soft)}
+  .hero-meta span{display:inline-flex;align-items:center;gap:6px}
+  .hero-meta strong{color:var(--ink);font-weight:500}
+
+  .hero-visual{position:relative;height:360px;border:1px solid var(--border);border-radius:18px;
+    background:linear-gradient(180deg,var(--surface),var(--bg));
+    overflow:hidden;padding:24px}
+  .hero-visual::before{content:"";position:absolute;inset:0;
+    background:radial-gradient(400px 220px at 70% 30%,rgba(88,166,255,.18),transparent 60%)}
+  .stat-row{position:relative;display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .stat-card{background:var(--surface-2);border:1px solid var(--border-soft);border-radius:12px;padding:14px 16px}
+  .stat-card .k{font-size:11px;color:var(--ink-soft);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
+  .stat-card .v{font-size:18px;font-weight:600;color:var(--ink);line-height:1.3}
+  .stat-card .v small{font-size:12px;color:var(--ink-mute);font-weight:400;margin-left:4px}
+  .stat-card.alt .v{color:var(--gold)}
+  .stat-card.alt2 .v{color:var(--accent)}
+
+  /* ============ section ============ */
+  section.block{padding:96px 28px;position:relative}
+  section.block.alt{background:var(--surface);border-top:1px solid var(--border-soft);border-bottom:1px solid var(--border-soft)}
+  .container{max-width:var(--max);margin:0 auto;position:relative}
+  .container.wide{max-width:var(--max-wide)}
+  .sec-num{display:inline-flex;align-items:center;gap:10px;color:var(--accent);font-size:12px;
+    letter-spacing:2px;text-transform:uppercase;margin-bottom:18px;font-weight:500}
+  .sec-num::before{content:"";display:inline-block;width:18px;height:1px;background:var(--accent)}
+  h2.sec-title{font-size:clamp(26px,3.6vw,38px);font-weight:700;line-height:1.25;letter-spacing:-.01em;margin-bottom:24px}
+  h2.sec-title em{font-style:normal;color:var(--gold)}
+  .sec-body{font-size:17px;line-height:1.85;color:var(--ink-mute)}
+  .sec-body p+p{margin-top:18px}
+  .sec-body strong{color:var(--ink);font-weight:600}
+  .lead{font-size:20px;line-height:1.7;color:var(--ink);font-weight:400;margin-bottom:32px}
+
+  /* ============ pull quote ============ */
+  .pullquote{margin:56px 0;padding:30px 36px;border-left:3px solid var(--gold);background:var(--surface);
+    border-radius:0 12px 12px 0;font-size:22px;line-height:1.55;color:var(--ink);font-weight:500;
+    position:relative}
+  .pullquote cite{display:block;margin-top:14px;font-size:13px;color:var(--ink-soft);font-weight:400;font-style:normal}
+
+  /* ============ case cards (§2) ============ */
+  .case-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:48px}
+  .case{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;
+    transition:transform .25s,border-color .25s,background .25s;cursor:pointer;text-align:left}
+  .case:hover{transform:translateY(-3px);border-color:var(--accent);background:var(--surface-2)}
+  .case h4{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:6px}
+  .case .meta{font-size:12px;color:var(--ink-soft);margin-bottom:10px;display:flex;gap:6px;flex-wrap:wrap}
+  .case .tag{background:var(--surface-2);padding:2px 8px;border-radius:6px;font-size:11px;color:var(--ink-mute)}
+  .case .status{font-size:13px;color:var(--ink-mute);line-height:1.55}
+  .case .dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px;vertical-align:middle}
+  .case .dot.demo{background:var(--green)}
+  .case .dot.delay{background:var(--gold)}
+  .case .dot.scale{background:var(--accent)}
+
+  /* ============ standards grid (§3) ============ */
+  .standards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin-top:48px}
+  .std{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;
+    display:flex;flex-direction:column;gap:14px;position:relative;overflow:hidden}
+  .std::after{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent)}
+  .std.s2::after{background:var(--gold)}
+  .std.s3::after{background:var(--red)}
+  .std .icon{width:36px;height:36px;border-radius:10px;background:var(--surface-2);display:grid;place-items:center;color:var(--accent);font-weight:700}
+  .std.s2 .icon{color:var(--gold)}
+  .std.s3 .icon{color:var(--red)}
+  .std h3{font-size:18px;font-weight:600;color:var(--ink)}
+  .std .q{font-size:14px;color:var(--ink-mute);line-height:1.65}
+  .std .evidence{margin-top:auto;padding-top:14px;border-top:1px dashed var(--border-soft);font-size:12px;color:var(--ink-soft);line-height:1.6}
+
+  /* ============ vs split (§4) ============ */
+  .vs{margin-top:56px;display:grid;grid-template-columns:1fr 60px 1fr;gap:0;align-items:stretch}
+  @media (max-width:720px){.vs{grid-template-columns:1fr}}
+  .vs-side{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px}
+  .vs-side.cap{background:linear-gradient(180deg,rgba(88,166,255,.06),var(--surface));border-color:rgba(88,166,255,.35)}
+  .vs-side.soc{background:linear-gradient(180deg,rgba(240,182,86,.06),var(--surface));border-color:rgba(240,182,86,.35)}
+  .vs-mid{display:grid;place-items:center;font-weight:700;color:var(--ink-soft);font-size:14px;letter-spacing:2px}
+  .vs-mid::before{content:"vs";background:var(--bg);border:1px solid var(--border);border-radius:50%;width:48px;height:48px;display:grid;place-items:center}
+  @media (max-width:720px){.vs-mid{padding:20px 0}.vs-mid::before{content:"↓"}}
+  .vs-side h3{font-size:17px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+  .vs-side.cap h3{color:var(--accent)}
+  .vs-side.soc h3{color:var(--gold)}
+  .vs-side ul{list-style:none;margin-top:16px;display:flex;flex-direction:column;gap:10px;font-size:14px;color:var(--ink-mute);line-height:1.6}
+  .vs-side ul li{padding-left:18px;position:relative}
+  .vs-side ul li::before{content:"·";position:absolute;left:6px;color:var(--ink-soft)}
+
+  .vs-conclusion{margin-top:32px;padding:24px 28px;background:var(--surface-2);border-radius:14px;
+    text-align:center;font-size:15px;color:var(--ink-mute);line-height:1.7;border:1px dashed var(--border)}
+  .vs-conclusion strong{color:var(--red);font-weight:600}
+
+  /* ============ timeline (§5) ============ */
+  .timeline{margin-top:56px;position:relative;padding-left:8px}
+  .timeline::before{content:"";position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:var(--border)}
+  .tl-item{position:relative;padding:0 0 36px 36px}
+  .tl-item:last-child{padding-bottom:0}
+  .tl-item::before{content:"";position:absolute;left:0;top:6px;width:16px;height:16px;border-radius:50%;
+    background:var(--bg);border:2px solid var(--accent)}
+  .tl-item.gold::before{border-color:var(--gold)}
+  .tl-item.red::before{border-color:var(--red)}
+  .tl-time{font-size:12px;color:var(--ink-soft);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+  .tl-title{font-size:17px;font-weight:600;color:var(--ink);margin-bottom:8px;line-height:1.4}
+  .tl-desc{font-size:14px;color:var(--ink-mute);line-height:1.65}
+  .tl-insight{margin-top:24px;padding:20px 24px;background:var(--surface-2);border-radius:12px;
+    border-left:3px solid var(--gold);font-size:15px;color:var(--ink);line-height:1.7}
+
+  /* ============ CTA (§6) ============ */
+  .cta-block{padding:80px 28px 60px;text-align:center}
+  .cta-block .cta-inner{max-width:680px;margin:0 auto}
+  .cta-block h2{font-size:clamp(28px,4vw,38px);font-weight:700;line-height:1.25;margin-bottom:24px}
+  .cta-block p{font-size:17px;color:var(--ink-mute);line-height:1.8;margin-bottom:32px}
+  .cta-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:14px}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:10px;
+    font-size:14px;font-weight:500;border:1px solid var(--border);background:var(--surface);color:var(--ink);
+    transition:all .2s;cursor:pointer;border-bottom:1px solid var(--border)}
+  .btn:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-1px)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#0B0F14;font-weight:600}
+  .btn.primary:hover{background:#79B8FF;color:#0B0F14;border-color:#79B8FF}
+  .btn svg{width:16px;height:16px}
+
+  /* ============ footer ============ */
+  footer{padding:60px 28px 40px;border-top:1px solid var(--border-soft);background:var(--surface)}
+  .foot-inner{max-width:var(--max-wide);margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px}
+  @media (max-width:720px){.foot-inner{grid-template-columns:1fr}}
+  .foot-brand{font-weight:600;font-size:18px;margin-bottom:10px}
+  .foot-brand span{color:var(--accent)}
+  .foot-bio{font-size:14px;color:var(--ink-mute);line-height:1.7;max-width:420px}
+  .foot-col h5{font-size:12px;color:var(--ink-soft);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;font-weight:500}
+  .foot-col a{display:block;font-size:14px;color:var(--ink-mute);margin-bottom:8px;border-bottom:none}
+  .foot-col a:hover{color:var(--ink)}
+  .foot-bottom{margin-top:48px;padding-top:24px;border-top:1px solid var(--border-soft);
+    text-align:center;font-size:12px;color:var(--ink-soft);max-width:var(--max-wide);margin-left:auto;margin-right:auto}
+
+  /* ============ reveal animations ============ */
+  .reveal{opacity:0;transform:translateY(20px);transition:opacity .7s ease,transform .7s ease}
+  .reveal.in{opacity:1;transform:translateY(0)}
+  .reveal.delay-1{transition-delay:.08s}
+  .reveal.delay-2{transition-delay:.16s}
+  .reveal.delay-3{transition-delay:.24s}
+
+  /* ============ accessibility ============ */
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important}
+    html{scroll-behavior:auto}
+  }
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+</style>
+</head>
+<body>
+
+<!-- ============ nav ============ -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">Mengyan <span>Li</span></div>
+    <div class="nav-links">
+      <a href="#sec-1">现象</a>
+      <a href="#sec-2">技术</a>
+      <a href="#sec-3">标准</a>
+           <a href="#sec-4">博弈</a>
+      <a href="#sec-5">路径</a>
+      <a href="#sec-6">动机</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ hero ============ -->
+<header class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="eyebrow">行业观察 · 2026年9月</div>
+      <h1>具身智能进入 C 端：<br><em>技术没卡住，标准与伦理才是</em></h1>
+      <p class="lede">2024–2025 是具身智能最热的一年：千亿融资、五家车企工厂部署、多场家庭场景发布。看起来 C 端就在眼前。但几乎所有"明年进入家庭"的承诺都在跳票。原因不在硬件，也不在模型。</p>
+      <div class="hero-meta">
+        <span><strong>李梦颜</strong></span>
+        <span>香港城市大学 · 人工智能硕士在读</span>
+        <span>原刊于个人专栏</span>
+      </div>
+    </div>
+    <aside class="hero-visual">
+      <div class="stat-row">
+        <div class="stat-card alt">
+          <div class="k">2024 融资</div>
+          <div class="v">$675M <small>Figure 一轮</small></div>
+        </div>
+        <div class="stat-card alt2">
+          <div class="k">估值</div>
+          <div class="v">$2.7B <small>Figure 2024.02</small></div>
+        </div>
+        <div class="stat-card">
+          <div class="k">事故率统计</div>
+          <div class="v">空白 <small>OSHA / 国标</small></div>
+        </div>
+        <div class="stat-card">
+          <div class="k">C 端交付</div>
+          <div class="v">跳票 <small>多家</small></div>
+        </div>
+        <div class="stat-card" style="grid-column:span 2">
+          <div class="k">核心论点</div>
+          <div class="v" style="font-size:14px;color:var(--ink-mute);font-weight:400">三类标准都没建立 — 安全 · 像人 · 责任</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</header>
+
+<!-- ============ §1 现象 ============ -->
+<section class="block" id="sec-1">
+  <div class="container">
+    <div class="sec-num">01 / 现象</div>
+    <h2 class="sec-title">钱在烧，承诺在跳票</h2>
+    <p class="lead">具身智能是过去两年最热闹的赛道之一。但凡只要跟进过交付节点，就会看到一个一致反常的现象 ——</p>
+    <div class="sec-body reveal">
+      <p><strong>几乎所有"明年进入家庭/明年量产 X 万台"的承诺，都在跳票。</strong></p>
+      <p>问题不在硬件，也不在模型。真正卡住的是三件标准都还没建起来 —— 而这三件不建起来，再多 demo 也只是 demo。</p>
+    </div>
+
+    <div class="pullquote reveal">
+      "再稳定的 demo，没有事故率统计、没有责任划分、没有情感边界，也只是把风险向后推到第一个出事的家庭。"
+      <cite>— 本文论点</cite>
+    </div>
+  </div>
+</section>
+
+<!-- ============ §2 技术临界点 ============ -->
+<section class="block" id="sec-2">
+  <div class="container">
+    <div class="sec-num">02 / 技术临界点</div>
+    <h2 class="sec-title">技术 <em>确实</em> 到了"能演示"</h2>
+    <div class="sec-body reveal">
+      <p>把 2024 年几个标志性 demo 摊开看：单纯从动作流畅度、视觉感知、续航、力控精度来看，技术已经 ready 到"可以稳定演示 10–30 分钟不翻车"的层级。这不是 PPT 上的承诺，是真实工厂产线上的视频。</p>
+      <p>所以"技术还差得远"是一种流行的过度悲观。<strong>真正的瓶颈在别处</strong>。</p>
+    </div>
+
+    <div class="case-grid">
+      <button class="case reveal" data-case="optimus">
+        <h4>Tesla Optimus</h4>
+        <div class="meta"><span class="tag">工厂搬运</span><span class="tag">2024 demo</span></div>
+        <div class="status"><span class="dot delay"></span>2025 量产时间表反复推迟</div>
+      </button>
+      <button class="case reveal delay-1" data-case="figure">
+        <h4>Figure 02</h4>
+        <div class="meta"><span class="tag">BMW Spartanburg</span><span class="tag">2024.02</span></div>
+        <div class="status"><span class="dot scale"></span>同年融资 $675M / 估值 $2.7B</div>
+      </button>
+      <button class="case reveal delay-2" data-case="apptronik">
+        <h4>Apptronik Apollo</h4>
+        <div class="meta"><span class="tag">Mercedes-Benz</span><span class="tag">2024.03</span></div>
+        <div class="status"><span class="dot demo"></span>工厂搬运正式合作</div>
+      </button>
+      <button class="case reveal" data-case="ubtech">
+        <h4>优必选 Walker S</h4>
+        <div class="meta"><span class="tag">比亚迪 / 吉利</span><span class="tag">2024–2025</span></div>
+        <div class="status"><span class="dot demo"></span>车厂搬运与质检陆续进入</div>
+      </button>
+      <button class="case reveal delay-1" data-case="onex">
+        <h4>1X Neo</h4>
+        <div class="meta"><span class="tag">家用陪伴</span><span class="tag">2024.10</span></div>
+        <div class="status"><span class="dot delay"></span>家庭交付时间表被推迟</div>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ §3 三类标准 ============ -->
+<section class="block alt" id="sec-3">
+  <div class="container">
+    <div class="sec-num">03 / 三大标准</div>
+    <h2 class="sec-title">进入 C 端需要三类标准，<em>目前都空白</em></h2>
+    <div class="sec-body reveal">
+      <p>汽车用了 100 年才建立起"事故率统计 → 安全评级 → 强制法规 → 工程改进"的闭环。具身智能的物理危险比汽车更不可控 —— 这条闭环还没开始。</p>
+    </div>
+
+    <div class="standards">
+      <article class="std reveal">
+        <div class="icon">01</div>
+        <h3>安全标准</h3>
+        <p class="q">类比汽车事故率统计，目前 OSHA 没有针对人型机器人的工伤统计口径；中国 2024 年才开始在几个人型机器人示范区做事故数据库的雏形。</p>
+        <div class="evidence">没有事故率统计 → 没有安全标准 → 保险公司不出产品责任险 → 工厂不真正大规模铺开。</div>
+      </article>
+      <article class="std s2 reveal delay-1">
+        <div class="icon">02</div>
+        <h3>像人标准</h3>
+        <p class="q">恐怖谷效应早在 1970 年就被提出。今天的人形厂商仍在"做得越像越好"的内卷里，但真正的伦理问题是情感投射之后的责任边界。</p>
+        <div class="evidence">老人对陪伴机器人产生依赖后被升级/故障/报废时，谁对心理影响负责？没有行业标准，全靠产品经理直觉。</div>
+      </article>
+      <article class="std s3 reveal delay-2">
+        <div class="icon">03</div>
+        <h3>责任标准</h3>
+        <p class="q">EU AI Act 2024 把高风险 AI 系统责任主体明确到部署方。但具体到"机器人在工厂误伤工人"，归厂商、集成商、还是雇用工厂？</p>
+        <div class="evidence">归模型 → 厂商被迫保守、体验崩；归部署方 → 工厂拒绝部署、市场起不来；归工人 → 道德风险不可行。</div>
+      </article>
+    </div>
+
+    <div class="pullquote reveal">
+      没有清晰的责任划分，所有商用部署都是在赌没人出事。
+    </div>
+  </div>
+</section>
+
+<!-- ============ §4 资本 vs 社会 ============ -->
+<section class="block" id="sec-4">
+  <div class="container">
+    <div class="sec-num">04 / 博弈</div>
+    <h2 class="sec-title">资本与社会，谁先让步？</h2>
+    <div class="sec-body reveal">
+      <p>三类标准的空白不是工程师的疏忽，而是<strong>资本与社会博弈没有结果</strong>的产物。夹在中间的工程师发现 —— 技术问题他能解决，<em>该不该用、什么时候用、对谁用</em>，是社会问题。</p>
+    </div>
+
+    <div class="vs">
+      <div class="vs-side cap reveal">
+        <h3>资本 · 选最低安全点</h3>
+        <p style="font-size:14px;color:var(--ink-mute);line-height:1.65">资本有时间压力，天然推动"先做出来再说"。</p>
+        <ul>
+          <li>Figure 02 估值 27 亿美元，隐含假设是"5 年内进入工厂和家庭"</li>
+          <li>Tesla Optimus 推迟量产的核心不是技术，是 Musk 也知道"出问题一次，整条线就崩"</li>
+          <li>时间表反复顺延 → 现实主义回归</li>
+        </ul>
+      </div>
+      <div class="vs-mid">vs</div>
+      <div class="vs-side soc reveal delay-1">
+        <h3>社会 · 把伦理代价前置</h3>
+        <p style="font-size:14px;color:var(--ink-mute);line-height:1.65">社会天然恐惧，反向压低部署节奏。</p>
+        <ul>
+          <li>工人对"被机器人替代"的本能抵触</li>
+          <li>消费者对"机器人陪伴儿童"的伦理疑虑</li>
+          <li>EU AI Act 2024 把人形机器人列入"高风险"，但具体技术指标空白</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="vs-conclusion reveal">
+      资本一催，社会反弹；社会一拖，资本就催。<br>
+      这条<strong>死循环</strong>就是过去两年"看起来要爆发、实际在跳票"的根本原因。<br>
+      技术员夹在中间 —— <strong>做不了决定</strong>。
+    </div>
+  </div>
+</section>
+
+<!-- ============ §5 中国路径 ============ -->
+<section class="block alt" id="sec-5">
+  <div class="container">
+    <div class="sec-num">05 / 中国路径</div>
+    <h2 class="sec-title">"先发展，后定标准" — <em>双刃剑</em></h2>
+    <div class="sec-body reveal">
+      <p>中国选择了与欧美不同的打法：用补贴和场景把企业扶上量产，让真实运行中产生的数据反过来定义标准。</p>
+    </div>
+
+    <div class="timeline">
+      <div class="tl-item reveal">
+        <div class="tl-time">2023.11</div>
+        <div class="tl-title">工信部发布《人形机器人创新发展指导意见》</div>
+        <div class="tl-desc">国家级政策定调，把具身智能从概念推到产业层面。</div>
+      </div>
+      <div class="tl-item gold reveal delay-1">
+        <div class="tl-time">2024</div>
+        <div class="tl-title">北京 / 上海 / 深圳 / 杭州 / 苏州 纷纷设立产业基金</div>
+        <div class="tl-desc">车厂、巡检、物流三类场景优先试点 —— "上车后买票"路径。</div>
+      </div>
+      <div class="tl-item reveal delay-2">
+        <div class="tl-time">2024–2025</div>
+        <div class="tl-title">优必选 / 智元 / 银河通用 陆续大额融资</div>
+        <div class="tl-desc">国产具身智能开始进入工厂车间、产业环节验证。</div>
+      </div>
+      <div class="tl-item red reveal delay-3">
+        <div class="tl-time">风险</div>
+        <div class="tl-title">当欧美先定义出安全标准、责任规则、情感边界</div>
+        <div class="tl-desc">中国产品进入全球市场时会被反向合规卡住。</div>
+      </div>
+    </div>
+
+    <div class="tl-insight reveal">
+      <strong>更隐蔽的风险是标准话语权</strong>：具身智能的"像人标准""安全标准""责任标准"，谁能率先定义出来，谁就是下一个十年的平台型公司。今天的人形厂商在拼硬件参数，5 年后真正值钱的可能是<strong>被监管采纳的那一套基准</strong>。这就是为什么 OpenAI、Anthropic 投入大量人力去参与 EU AI Act、美国 NIST AI Risk Framework 的制定。
+    </div>
+  </div>
+</section>
+
+<!-- ============ §6 我想做什么 ============ -->
+<section class="block" id="sec-6">
+  <div class="container">
+    <div class="sec-num">06 / 动机</div>
+    <h2 class="sec-title">所以，我想做什么</h2>
+    <div class="sec-body reveal">
+      <p>我是一名 AI 硕士在读学生，过去一年在 RGB-D 传感系统、点云重建、生成式视觉上做过一些工程实践，但更多时候是在补基础课、读论文、跟着一两个项目慢慢做。<strong>越往后做，越觉得自己的认知远远不够 —— 技术问题里有太多我还没真正搞懂的，标准、伦理、产业判断这些技术之外的维度，我更是刚刚开始接触。</strong></p>
+      <p>我想继续在这个方向上学习 —— 现阶段的目标还很朴素：不那么容易被一个 demo 视频说服，不那么容易被一份漂亮的估值故事打动。知道自己不知道什么，可能是更难的一课。</p>
+      <p>这是我写这篇长文的真实动机，也是我对自己的提醒。</p>
+      <p>这是我写这篇长文的真实动机。</p>
+    </div>
+
+    <div class="cta-block" style="padding:48px 0 0">
+      <div class="cta-inner">
+        <h2>如果你也在看这条赛道，欢迎交流</h2>
+        <p>我正在找投资研究方向的实习机会（硬科技 / 机器人 / 3D 视觉 / 传感）。如果你正在看相关团队，欢迎邮件或微信联系 —— 哪怕只是指出文章里的事实错误，也是帮我进步。</p>
+        <div class="cta-actions">
+          <a class="btn primary" href="./resume-investment-cn.pdf" download>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            简历下载 · 中文版
+          </a>
+          <a class="btn primary" href="./resume-investment-en.pdf" download>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Resume · English
+          </a>
+          <a class="btn" href="mailto:mli586-c@my.cityu.edu.hk">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zM22 6l-10 7L2 6"/></svg>
+            mli586-c@my.cityu.edu.hk
+          </a>
+          <a class="btn" href="https://github.com/My990813" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.9 1.3 1.9 1.3 1.1 1.9 2.9 1.3 3.6 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3"/></svg>
+            GitHub
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ footer ============ -->
+<footer>
+  <div class="foot-inner">
+    <div>
+      <div class="foot-brand">Mengyan <span>Li</span></div>
+      <p class="foot-bio">AI 硕士在读 · 关注硬科技赛道（3D 视觉 / 机器人 / 传感硬件）· 正在找投资研究方向的实习。</p>
+    </div>
+    <div class="foot-col">
+      <h5>联系</h5>
+      <a href="mailto:mli586-c@my.cityu.edu.hk">Email</a>
+      <a href="https://github.com/My990813" target="_blank" rel="noopener">GitHub</a>
+      <a href="#">微信 Anxun0462</a>
+    </div>
+    <div class="foot-col">
+      <h5>导航</h5>
+      <a href="#sec-1">现象</a>
+      <a href="#sec-2">技术</a>
+      <a href="#sec-3">标准</a>
+      <a href="#sec-4">博弈</a>
+      <a href="#sec-5">路径</a>
+      <a href="#sec-6">动机</a>
+    </div>
+  </div>
+  <div class="foot-bottom">© 2026 李梦颜 · 本页为个人专栏文章 · 转载请保留署名</div>
+</footer>
+
+<script>
+  // ============ scroll reveal ============
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+
+  document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+  // ============ nav shadow on scroll ============
+  const nav = document.querySelector('.nav');
+  let lastScroll = 0;
+  window.addEventListener('scroll', () => {
+    const cur = window.scrollY;
+    if (cur > 40) nav.style.borderBottomColor = 'var(--border)';
+    else nav.style.borderBottomColor = 'var(--border-soft)';
+    lastScroll = cur;
+  }, { passive: true });
+
+  // ============ case cards: small click feedback ============
+  document.querySelectorAll('.case').forEach((card) => {
+    card.addEventListener('click', () => {
+      card.style.transform = 'scale(0.98)';
+      setTimeout(() => { card.style.transform = ''; }, 160);
+    });
+  });
+</script>
+
+</body>
+</html>
